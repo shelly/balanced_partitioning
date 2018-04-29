@@ -53,10 +53,26 @@ long *randomPermutation(long n) {
     return array;
 }
 
+int num_clusters(long* C, long n) {
+    int *found = newA(int, n);
+    parallel_for(int i = 0; i < n; i++) {
+        found[C[i]] = 1;
+    }
+    return sequence::plusReduce(found, n);
+}
+
 template <class vertex>
-long *affinityOrdering(graph<vertex>& G, int *similarity) {
-    long *C = newA(long, G.n);
-    long *labels = malloc(sizeof(labels));
+long *affinityOrdering(graph<vertex>& G, int *similarity) { // remove G later if unnecessary
+    long n = G.n;
+    long *C = newA(long, n);
+    parallel_for(int i = 0; i < n; i++) { C[i] = i; }
+    long *labels = newA(long, n * n);
+
+    int i = 0;
+    bool converged = false;
+    while(!converged) {       
+ 	i = i + 1;
+    }
 }
 
 template <class vertex>
