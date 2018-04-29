@@ -1,5 +1,6 @@
 #include "ligra.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 intE *listToIndicator(uintE *vertices, uintE vertices_size, long n) {
     int *indicator = newA(int, n);
@@ -37,10 +38,34 @@ int *Similarity(graph<vertex>& G) {
     return similarity;
 }
 
+long *randomPermutation(long n) {
+    long *array = newA(long, n);
+    parallel_for(long i = 0; i < n; i++) {
+        array[i] = i;
+    }
+
+    for(long i = 0; i < n; i++) {
+        int r = (rand() % (n - i)) + i;
+        long temp = array[i];
+        array[i] = array[r];
+        array[r] = temp;
+    }
+    return array;
+}
+
+template <class vertex>
+long *affinityOrdering(graph<vertex>& G, int *similarity) {
+    long *C = newA(long, G.n);
+    long *labels = malloc(sizeof(labels));
+}
 
 template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {
 
+    long n = G.n;
+
     int *similarity = Similarity(G);
-    printf("Completed successfully.\n");
+    long *permutation = randomPermutation(n); // replace with AffinityOrdering
+
+    // semi local swaps 
 }
