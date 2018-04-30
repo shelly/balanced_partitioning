@@ -61,18 +61,55 @@ int num_clusters(long* C, long n) {
     return sequence::plusReduce(found, n);
 }
 
-template <class vertex>
-long *affinityOrdering(graph<vertex>& G, int *similarity) { // remove G later if unnecessary
-    long n = G.n;
-    long *C = newA(long, n);
-    parallel_for(int i = 0; i < n; i++) { C[i] = i; }
-    long *labels = newA(long, n * n);
-
-    int i = 0;
-    bool converged = false;
-    while(!converged) {       
- 	i = i + 1;
+long *get_cluster_names(long *C, long n) {
+    long *names = newA(long, n);
+    parallel_for(int i = 0; i < n; i++) {
+        names[C[i]] = 1;
     }
+    return names;
+}
+
+long closest_clusters(int *similarity, long *C, long s, long n) {
+    return (long)0;
+}
+
+long *affinityOrdering(int *similarity, long n) {
+    long **labels = newA(long*, n);
+    for(int i = 0; i < n; i++) { labels[i] = newA(long, n); }
+    parallel_for(int i = 0; i < n; i++) { labels[i][0] = i; }    
+
+    long *C = newA(long, n);
+    parallel_for(int i = 0; i < n; i++) {C[i] = i;}
+    
+    long *newC = newA(long, n);
+
+    int iter = 0;
+    bool converged = false;
+
+    while(!converged) {
+
+        long *names = get_cluster_names(C, n);
+        parallel_for(long s = 0; s < n; s++) {
+            if (names[s] == 1) {
+                long t = closest_clusters(similarity, C, s, n);
+                parallel_for(int i = 0; i < n; i++) {
+                    if (C[i] == s) {newC[i] = t;}
+                }
+            }
+        }
+
+        //compute "closest" cluster for every cluster (helper fn) 
+        //invert fn p, find which clusters to be combined
+        //create new C, making cluster names the lowest vertex in each cluster 
+        
+
+ 	iter++;
+        parallel_for(int i = 0; i < n; i++) {labels[i][iter] = newC[i];}
+        converged = (num_clusters(C, n) == num_clusters(newC, n));
+	parallel_for(int i = 0; i < n; i++) {C[i] = newC[i];}
+    }
+
+    //sort according to labels 
 }
 
 template <class vertex>
