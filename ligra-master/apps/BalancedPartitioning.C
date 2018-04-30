@@ -158,8 +158,18 @@ long *affinityOrdering(int *similarity, long n) {
 	parallel_for(int i = 0; i < n; i++) {C[i] = newC[i];}
     }
 
-    //sort according to labels 
-    return C;
+    sort(labels, labels + n, labelCompare);
+    
+    long *result = newA(long, n);
+    parallel_for(int i = 0; i < n; i++) { result[i] = labels[i][0];  }
+
+
+    printf("First few: ");
+    for(int i = 0; i < 20; i++) {
+        printf("%li, ", result[i]);
+    }
+    printf("\n");
+    return result;
 }
 
 template <class vertex>
