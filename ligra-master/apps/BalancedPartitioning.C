@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+long num_vertices;
+
 intE *listToIndicator(uintE *vertices, uintE vertices_size, long n) {
     int *indicator = newA(int, n);
     parallel_for(int i = 0; i < vertices_size; i++) {
@@ -61,6 +63,7 @@ int num_clusters(long* C, long n) {
     return sequence::plusReduce(found, n);
 }
 
+
 long *get_cluster_names(long *C, long n) {
     long *names = newA(long, n);
     parallel_for(int i = 0; i < n; i++) {
@@ -69,9 +72,57 @@ long *get_cluster_names(long *C, long n) {
     return names;
 }
 
+
+//template <class ET>
+//inline bool writeMax(ET *a, ET b) {
+//  ET c; bool r=0;
+//  do c = *a;
+//  while (c < b && !(r=CAS(a,c,b)));
+//  return r;
+//}
+
+
 long closest_clusters(int *similarity, long *C, long s, long n) {
-    return (long)0;
+    long* names = get_cluster_names(C, n);
+    long max_sim = 0;
+    long arg_max_sim = s;
+
+    for(int t = 0; t < n; t++) {
+        if (names[t] == 1) {
+            long sim_sum = 0;
+
+            for (int i = 0; i < n; i++) {
+                if (C[i] == s) {
+                    for (int j = 0; j < n; j++) {
+                        if (C[j] == t) {
+                            sim_sum += similarity[i * n + j];
+                        } 
+                    }
+                }
+            }
+
+            if (sim_sum > max_sim) {
+                max_sim = sim_sum;
+                arg_max_sim = t;
+            }
+        }
+    }
+    return arg_max_sim;
 }
+
+
+bool labelCompare(long *a, long *b) {
+    long n = num_vertices;
+    for (int i = n - 1; i >= 0; i--) {
+        if (a[i] > b[i]) {
+            return false;
+        }
+        else if (a[i] < b[i]) {
+            return true;
+        }
+    }
+}
+
 
 long *affinityOrdering(int *similarity, long n) {
     long **labels = newA(long*, n);
@@ -90,16 +141,16 @@ long *affinityOrdering(int *similarity, long n) {
 
         //compute closest cluster for every vertex, save into newC
         long *names = get_cluster_names(C, n);
-        parallel_for(long s = 0; s < n; s++) {
+        for(long s = 0; s < n; s++) {
             if (names[s] == 1) {
                 long t = closest_clusters(similarity, C, s, n);
                 parallel_for(int i = 0; i < n; i++) {
-                    if (C[i] == s || C[i] == t) { newC[i] = min(s,t); }
+                    if (C[i] == s || C[i] == t || newC[i] == s || newC[i] == t) {
+                        newC[i] = min(s,t); 
+                    }
                 }
             }
         }
-
-       //rename every element in newC with the lowest vert in its new cluster  
 
  	iter++;
         parallel_for(int i = 0; i < n; i++) {labels[i][iter] = newC[i];}
@@ -108,15 +159,18 @@ long *affinityOrdering(int *similarity, long n) {
     }
 
     //sort according to labels 
+    return C;
 }
 
 template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {
 
     long n = G.n;
+    num_vertices = n;
 
     int *similarity = Similarity(G);
-    long *permutation = randomPermutation(n); // replace with AffinityOrdering
+    // long *permutation = randomPermutation(n); // replace with AffinityOrdering
+    long* permutation = affinityOrdering(similarity, n);
 
     // semi local swaps 
 }
