@@ -88,20 +88,18 @@ long *affinityOrdering(int *similarity, long n) {
 
     while(!converged) {
 
+        //compute closest cluster for every vertex, save into newC
         long *names = get_cluster_names(C, n);
         parallel_for(long s = 0; s < n; s++) {
             if (names[s] == 1) {
                 long t = closest_clusters(similarity, C, s, n);
                 parallel_for(int i = 0; i < n; i++) {
-                    if (C[i] == s) {newC[i] = t;}
+                    if (C[i] == s || C[i] == t) { newC[i] = min(s,t); }
                 }
             }
         }
 
-        //compute "closest" cluster for every cluster (helper fn) 
-        //invert fn p, find which clusters to be combined
-        //create new C, making cluster names the lowest vertex in each cluster 
-        
+       //rename every element in newC with the lowest vert in its new cluster  
 
  	iter++;
         parallel_for(int i = 0; i < n; i++) {labels[i][iter] = newC[i];}
