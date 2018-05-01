@@ -32,9 +32,7 @@ int *Similarity(graph<vertex>& G) {
             parallel_for(long k = 0; k < n; k++) {
                  intersection[k] = v_ind[k] * u_ind[k];
             }
-
             similarity[n*i + v_neighbors[j]] = sequence::plusReduce(intersection, n); 
-
         }
     }
     return similarity;
@@ -71,15 +69,6 @@ long *get_cluster_names(long *C, long n) {
     }
     return names;
 }
-
-
-//template <class ET>
-//inline bool writeMax(ET *a, ET b) {
-//  ET c; bool r=0;
-//  do c = *a;
-//  while (c < b && !(r=CAS(a,c,b)));
-//  return r;
-//}
 
 
 long closest_clusters(int *similarity, long *C, long s, long n) {
@@ -163,24 +152,50 @@ long *affinityOrdering(int *similarity, long n) {
     long *result = newA(long, n);
     parallel_for(int i = 0; i < n; i++) { result[i] = labels[i][0];  }
 
-
-    printf("First few: ");
-    for(int i = 0; i < 20; i++) {
-        printf("%li, ", result[i]);
-    }
-    printf("\n");
     return result;
 }
 
 template <class vertex>
+double countCutEdges(graph<vertex>& G, long *perm, int k) {
+    long num_cut = 0;
+    long n = G.n;
+    long part_size = n/k + !!(n%k);
+    for (long i = 0; i < n; i++) {
+       	long v = perm[i];
+	vertex vert = G.V[i];
+        uintE degree = vert.getOutDegree();
+	uintE* neighbors = (uintE*) vert.getOutNeighbors();
+        for (int j = 0; j < degree; j++) {
+            int p1 = v / part_size;
+            int p2 = neighbors[j] / part_size;
+            if (p1 != p2) { num_cut++; }
+        }
+    }
+
+    return num_cut/((double)(G.m * 2));
+}
+
+
+
+template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {
+
+    int k = 10;
 
     long n = G.n;
     num_vertices = n;
 
-    int *similarity = Similarity(G);
-    // long *permutation = randomPermutation(n); // replace with AffinityOrdering
-    long* permutation = affinityOrdering(similarity, n);
+    printf("Number of Vertices: %li, Number of Edges: %li\n", G.n, G.m);
 
-    // semi local swaps 
+    int *similarity = Similarity(G);
+
+    long *random_perm = randomPermutation(n);
+    long *affinity_perm = affinityOrdering(similarity, n);
+
+
+    printf("Fraction of cut edges under random permutation: %f\n",
+           countCutEdges(G, random_perm, k)); 
+
+    printf("Fraction of cut edges under affinity permutation: %f\n",
+           countCutEdges(G, affinity_perm, k));
 }
