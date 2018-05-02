@@ -189,7 +189,7 @@ double countCutEdges(graph<vertex>& G, long *perm, int k) {
     
     for (long i = 0; i < n; i++) {
        	long v = perm[i];
-	vertex vert = G.V[i];
+	vertex vert = G.V[v];
         uintE degree = vert.getOutDegree();
 	uintE* neighbors = (uintE*) vert.getOutNeighbors();
         for (int j = 0; j < degree; j++) {
@@ -223,7 +223,7 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
     uintE j_degree = j_vert.getOutDegree(); 
     uintE *i_neighbors = (uintE*) i_vert.getOutNeighbors();
     uintE *j_neighbors = (uintE*) j_vert.getOutNeighbors();
-
+    
     long orig_cut = 0;
 
     for (int x = 0; x < i_degree; x++) {
@@ -231,14 +231,14 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
         int part = inverse[neigh] / part_size; 
         if (part != i_part) { orig_cut ++; }
     }
-    for (int y = 0; y < i_degree; y++) {
+    for (int y = 0; y < j_degree; y++) {
         uintE neigh = j_neighbors[y];
         if (neigh != i) {
             int part = inverse[neigh] / part_size;
             if (part != j_part) { orig_cut ++; }
         }
     }
-
+   
     long new_cut = 0;
 
     for (int x = 0; x < i_degree; x++) {
@@ -246,7 +246,8 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
         int part = inverse[neigh] / part_size;
         if (part != j_part) { new_cut ++; }
     }
-    for (int y = 0; y < i_degree; y++) {
+    
+    for (int y = 0; y < j_degree; y++) {
         uintE neigh = j_neighbors[y];
         if (neigh != i) {
             int part = inverse[neigh] / part_size;
@@ -285,12 +286,12 @@ void Compute(graph<vertex>& G, commandLine P) {
            countCutEdges(G, affinity_perm, k));
 
     printf("\nAfter random swaps:\n\n");
-
-    for(long i = 0; i < n; i++) { 
+    
+    for(long i = 0; i < k*n; i++) { 
         randomSwap(G, random_perm, k); 
         randomSwap(G, affinity_perm, k);
     }
-
+    
     printf("Fraction of cut edges under random permutation: %f\n",
            countCutEdges(G, random_perm, k));
 
