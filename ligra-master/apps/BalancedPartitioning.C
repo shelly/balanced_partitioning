@@ -210,7 +210,14 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
     long *inverse = inv_perm(perm, n);
  
     long p = rand() % n;
-    long q = rand() % n;
+    long q;
+    if (rand() % 2) {
+        q = (p + (rand() % part_size)) % n;
+        if (q < p) { q = n - 1; }
+    } else {
+        q = (p - (rand() % part_size)) % n;
+        if (q > p) { q = 0; } 
+    }
     
     long i = perm[p];
     long j = perm[q];
