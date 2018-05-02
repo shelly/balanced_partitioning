@@ -202,12 +202,13 @@ double countCutEdges(graph<vertex>& G, long *perm, int k) {
     return num_cut/((double)(G.m * 2));
 }
 
-/*
+
 template <class vertex>
 void randomSwap(graph<vertex>& G, long *perm, int k) {
     long n = G.n;
     long part_size = n/k + !!(n%k);
-     
+    long *inverse = inv_perm(perm, n);
+ 
     long p = rand() % n;
     long q = rand() % n;
     
@@ -227,13 +228,13 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
 
     for (int x = 0; x < i_degree; x++) {
         uintE neigh = i_neighbors[x];
-        int part = neigh / part_size; 
+        int part = inverse[neigh] / part_size; 
         if (part != i_part) { orig_cut ++; }
     }
     for (int y = 0; y < i_degree; y++) {
         uintE neigh = j_neighbors[y];
         if (neigh != i) {
-            int part = neigh / part_size;
+            int part = inverse[neigh] / part_size;
             if (part != j_part) { orig_cut ++; }
         }
     }
@@ -242,21 +243,24 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
 
     for (int x = 0; x < i_degree; x++) {
         uintE neigh = i_neighbors[x];
-        int part = neigh / part_size;
+        int part = inverse[neigh] / part_size;
         if (part != j_part) { new_cut ++; }
     }
     for (int y = 0; y < i_degree; y++) {
         uintE neigh = j_neighbors[y];
         if (neigh != i) {
-            int part = neigh / part_size;
+            int part = inverse[neigh] / part_size;
             if (part != i_part) { new_cut ++; }
         }
     }
 
     if (new_cut < orig_cut) {
-     
+        perm[p] = j;
+        perm[q] = i;
     }
-} */
+    
+    return;
+}
 
 
 template <class vertex>
@@ -274,11 +278,23 @@ void Compute(graph<vertex>& G, commandLine P) {
     long *random_perm = randomPermutation(n);
     long *affinity_perm = affinityOrdering(similarity, n);
 
-
-
     printf("Fraction of cut edges under random permutation: %f\n",
            countCutEdges(G, random_perm, k)); 
 
     printf("Fraction of cut edges under affinity permutation: %f\n",
            countCutEdges(G, affinity_perm, k));
+
+    printf("\nAfter random swaps:\n\n");
+
+    for(long i = 0; i < n; i++) { 
+        randomSwap(G, random_perm, k); 
+        randomSwap(G, affinity_perm, k);
+    }
+
+    printf("Fraction of cut edges under random permutation: %f\n",
+           countCutEdges(G, random_perm, k));
+
+    printf("Fraction of cut edges under affinity permutation: %f\n",
+           countCutEdges(G, affinity_perm, k));
+
 }
