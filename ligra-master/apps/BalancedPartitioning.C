@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 long num_vertices;
-bool random_nonlocal;
 
 intE *listToIndicator(uintE *vertices, uintE vertices_size, long n) {
     int *indicator = newA(int, n);
@@ -211,15 +210,7 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
     long *inverse = inv_perm(perm, n);
  
     long p = rand() % n;
-    long q;
-    if (rand() % 2) {
-        q = (p + (rand() % part_size)) % n;
-        if (q < p) { q = n - 1; }
-    } else {
-        q = (p - (rand() % part_size)) % n;
-        if (q > p) { q = 0; } 
-    }
-    if (random_nonlocal) { q = rand() % n; }
+    long q = rand() % n;
     
     long i = perm[p];
     long j = perm[q];
@@ -277,7 +268,6 @@ template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {
 
     int k = 5;
-    random_nonlocal = true;  // random swaps instead of local swaps
 
     long n = G.n;
     num_vertices = n;
