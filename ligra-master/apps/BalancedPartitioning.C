@@ -169,19 +169,32 @@ long *affinityOrdering(int *similarity, long n) {
     return result;
 }
 
+long *inv_perm(long *perm, long n) {
+  long *inv_perm = newA(long, n);
+  parallel_for(long i = 0; i < n; i++) {
+      uintE v = perm[i];
+      inv_perm[v] = i;
+  }
+  return inv_perm;
+}
+
+
 template <class vertex>
 double countCutEdges(graph<vertex>& G, long *perm, int k) {
+    long n = G.n;    
+    long *inverse = inv_perm(perm, n);
+    
     long num_cut = 0;
-    long n = G.n;
     long part_size = n/k + !!(n%k);
+    
     for (long i = 0; i < n; i++) {
        	long v = perm[i];
 	vertex vert = G.V[i];
         uintE degree = vert.getOutDegree();
 	uintE* neighbors = (uintE*) vert.getOutNeighbors();
         for (int j = 0; j < degree; j++) {
-            int p1 = v / part_size;
-            int p2 = neighbors[j] / part_size;
+            int p1 = i / part_size;
+            int p2 = inverse[neighbors[j]] / part_size;
             if (p1 != p2) { num_cut++; }
         }
     }
@@ -189,6 +202,61 @@ double countCutEdges(graph<vertex>& G, long *perm, int k) {
     return num_cut/((double)(G.m * 2));
 }
 
+/*
+template <class vertex>
+void randomSwap(graph<vertex>& G, long *perm, int k) {
+    long n = G.n;
+    long part_size = n/k + !!(n%k);
+     
+    long p = rand() % n;
+    long q = rand() % n;
+    
+    long i = perm[p];
+    long j = perm[q];
+
+    int i_part = p / part_size;
+    int j_part = q / part_size;
+    vertex i_vert = G.V[i];
+    vertex j_vert = G.V[j];
+    uintE i_degree = i_vert.getOutDegree();
+    uintE j_degree = j_vert.getOutDegree(); 
+    uintE *i_neighbors = (uintE*) i_vert.getOutNeighbors();
+    uintE *j_neighbors = (uintE*) j_vert.getOutNeighbors();
+
+    long orig_cut = 0;
+
+    for (int x = 0; x < i_degree; x++) {
+        uintE neigh = i_neighbors[x];
+        int part = neigh / part_size; 
+        if (part != i_part) { orig_cut ++; }
+    }
+    for (int y = 0; y < i_degree; y++) {
+        uintE neigh = j_neighbors[y];
+        if (neigh != i) {
+            int part = neigh / part_size;
+            if (part != j_part) { orig_cut ++; }
+        }
+    }
+
+    long new_cut = 0;
+
+    for (int x = 0; x < i_degree; x++) {
+        uintE neigh = i_neighbors[x];
+        int part = neigh / part_size;
+        if (part != j_part) { new_cut ++; }
+    }
+    for (int y = 0; y < i_degree; y++) {
+        uintE neigh = j_neighbors[y];
+        if (neigh != i) {
+            int part = neigh / part_size;
+            if (part != i_part) { new_cut ++; }
+        }
+    }
+
+    if (new_cut < orig_cut) {
+     
+    }
+} */
 
 
 template <class vertex>
@@ -205,6 +273,7 @@ void Compute(graph<vertex>& G, commandLine P) {
 
     long *random_perm = randomPermutation(n);
     long *affinity_perm = affinityOrdering(similarity, n);
+
 
 
     printf("Fraction of cut edges under random permutation: %f\n",
