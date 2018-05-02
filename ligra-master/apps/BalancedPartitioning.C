@@ -79,7 +79,7 @@ long closest_cluster(int *similarity, long *C, long s, long n) {
     long s_count = 0;
     long t_count;
     for (int i = 0; i < n; i++) {
-        if (names[i] == 1) { s_count += 1; }
+        if (names[i] == s) { s_count += 1; }
     }
 
     for(int t = 0; t < n; t++) {
@@ -89,7 +89,7 @@ long closest_cluster(int *similarity, long *C, long s, long n) {
             double avg_sim = 0;
  
         for (int i = 0; i < n; i++) {
-            if (names[i] == 1) { t_count += 1; }
+            if (names[i] == t) { t_count += 1; }
         }
 
             for (int i = 0; i < n; i++) {
@@ -194,7 +194,7 @@ double countCutEdges(graph<vertex>& G, long *perm, int k) {
 template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {
 
-    int k = 10;
+    int k = 5;
 
     long n = G.n;
     num_vertices = n;
