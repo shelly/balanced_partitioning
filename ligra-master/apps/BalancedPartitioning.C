@@ -71,14 +71,26 @@ long *get_cluster_names(long *C, long n) {
 }
 
 
-long closest_clusters(int *similarity, long *C, long s, long n) {
+long closest_cluster(int *similarity, long *C, long s, long n) {
     long* names = get_cluster_names(C, n);
-    long max_sim = 0;
+    double max_sim = 0;
     long arg_max_sim = s;
 
+    long s_count = 0;
+    long t_count;
+    for (int i = 0; i < n; i++) {
+        if (names[i] == 1) { s_count += 1; }
+    }
+
     for(int t = 0; t < n; t++) {
+        t_count = 0;
         if (names[t] == 1) {
             long sim_sum = 0;
+            double avg_sim = 0;
+ 
+        for (int i = 0; i < n; i++) {
+            if (names[i] == 1) { t_count += 1; }
+        }
 
             for (int i = 0; i < n; i++) {
                 if (C[i] == s) {
@@ -90,8 +102,10 @@ long closest_clusters(int *similarity, long *C, long s, long n) {
                 }
             }
 
-            if (sim_sum > max_sim) {
-                max_sim = sim_sum;
+            avg_sim = sim_sum / ((double)(s_count * t_count));
+
+            if (avg_sim > max_sim) {
+                max_sim = avg_sim;
                 arg_max_sim = t;
             }
         }
@@ -132,7 +146,7 @@ long *affinityOrdering(int *similarity, long n) {
         long *names = get_cluster_names(C, n);
         for(long s = 0; s < n; s++) {
             if (names[s] == 1) {
-                long t = closest_clusters(similarity, C, s, n);
+                long t = closest_cluster(similarity, C, s, n);
                 parallel_for(int i = 0; i < n; i++) {
                     if (C[i] == s || C[i] == t || newC[i] == s || newC[i] == t) {
                         newC[i] = min(s,t); 
