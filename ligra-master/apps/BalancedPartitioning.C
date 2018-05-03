@@ -170,7 +170,16 @@ long closest_cluster(int *similarity, long *C, long s, long n) {
     return arg_max_sim;
 }
 
-
+/*  Args:
+      a: label that tracks the representative elements of clusters that a vertex belonged to
+         where a is a list of length n and a[i] = s indicates that this vertex was a part of 
+         cluster s on the (n-i)th iteration of the algorithm
+      b: see a 
+    Returns:
+      true if a < b, false otherwise.
+    Description:
+      Used as a custom comparator to help sort labels of vertices. 
+*/
 bool labelCompare(long *a, long *b) {
     long n = num_vertices;
     for (int i = n - 1; i >= 0; i--) {
@@ -183,7 +192,15 @@ bool labelCompare(long *a, long *b) {
     }
 }
 
-
+/*  Args:
+      similarity: a list of length n*n that 
+      n: the number of vertices
+    Returns:
+      A list of length n that defines an ordering of vertices where result[i] holds the 
+      name of the i'th vertex in the ordering.
+    Description:
+      Computes an ordering of the vertices using the affinity ordering algorithm.     
+*/
 long *affinityOrdering(int *similarity, long n) {
     long **labels = newA(long*, n);
     for(int i = 0; i < n; i++) { labels[i] = newA(long, n); }
@@ -226,6 +243,14 @@ long *affinityOrdering(int *similarity, long n) {
     return result;
 }
 
+/*  Args: 
+      perm: a list of length n representing a permutation of 0..n-1
+      n: the length of the permutation
+    Returns:
+      A list of length n where result[i] = j indicates that perm[j] = 1
+    Description:
+      Returns the inversion of a permutation.
+*/
 long *inv_perm(long *perm, long n) {
   long *inv_perm = newA(long, n);
   parallel_for(long i = 0; i < n; i++) {
@@ -235,7 +260,18 @@ long *inv_perm(long *perm, long n) {
   return inv_perm;
 }
 
-
+/*  Args:
+      G: a graph G with n vertices
+      perm: a list of length n representing a permutation of the vertices in G
+      k: the number of partitions to create
+    Returns:
+      A double representing the fraction of edges in G that are cut by the partition
+      created by interpreting perm to have the first n/k vertices as the first 
+      partition, the second n/k vertices as the second partition, and so on.
+    Description:
+      Given a graph and a permutation of its vertices, interprets the permutation
+      as a k-way partition and returns the fraction of edges cut by this partition. 
+*/
 template <class vertex>
 double countCutEdges(graph<vertex>& G, long *perm, int k) {
     long n = G.n;    
@@ -259,7 +295,17 @@ double countCutEdges(graph<vertex>& G, long *perm, int k) {
     return num_cut/((double)(G.m * 2));
 }
 
-
+/*  Args:
+      G: a graph with n vertices
+      perm: a list representing an ordering of the vertices in G
+      k: the number of partitions to create
+   Returns:
+      A list representing a permutation of the vertices in G
+   Description:
+      Given an ordering of the vertices of G, where the first n/k vertices
+      are interpreted to be in the first partition and so on, for n*k rounds
+      randomly swaps vertices i and j if the swap reduces the number of cut edges. 
+*/
 template <class vertex>
 void randomSwap(graph<vertex>& G, long *perm, int k) {
     long n = G.n;
@@ -320,7 +366,16 @@ void randomSwap(graph<vertex>& G, long *perm, int k) {
     return;
 }
 
-
+/*  Args: 
+      G: a graph G with n vertices
+      P: command line arguments
+    Returns:
+      void
+    Description:
+      Computes and compares the number of cut edges of a k-way partition generated randomly
+      to one generated via the affinity ordering algorithm, as well as the improvement that
+      making random swaps to these algorithms can provide.
+*/ 
 template <class vertex>
 void Compute(graph<vertex>& G, commandLine P) {
 
