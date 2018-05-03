@@ -4,6 +4,17 @@
 
 long num_vertices;
 
+/*  Args: 
+      vertices: a list of names of vertices
+      vertices_size: length of the list vertices
+      n: number of vertices in the graph
+    Returns:
+      List of length n, where result[i] = 1 if i is in vertices, 0 otherwise 
+    Description:
+      	Converts between frontier representations, 
+        from vertices[i] = 1 indicating that vertex 1 is in the frontier to 
+        vertices[i] = 1 indicating that vertex i is in the frontier 
+*/
 intE *listToIndicator(uintE *vertices, uintE vertices_size, long n) {
     int *indicator = newA(int, n);
     parallel_for(int i = 0; i < vertices_size; i++) {
@@ -12,6 +23,16 @@ intE *listToIndicator(uintE *vertices, uintE vertices_size, long n) {
     return indicator;
 }
 
+
+/*  Args: 
+      graph G: a graph G with n vertices
+    Returns:
+      List of length n*n, where result[i * n + j] represents the similarity of vertices i and j
+    Description: 
+      Computes the similarity for all vertex pairs (u, v) and stores them 
+      in the returned similarity matrix, where similarity between u and v is 
+      the number of neighbors they have in common
+*/  
 template <class vertex>
 int *Similarity(graph<vertex>& G) {
     long n = G.n;
@@ -29,6 +50,7 @@ int *Similarity(graph<vertex>& G) {
 	    int *u_ind = listToIndicator(u_neighbors, u_degree, n);            
             int *intersection = newA(int, n);
 
+            //Multiplication here is being used like the "and" operator.
             parallel_for(long k = 0; k < n; k++) {
                  intersection[k] = v_ind[k] * u_ind[k];
             }
@@ -38,6 +60,13 @@ int *Similarity(graph<vertex>& G) {
     return similarity;
 }
 
+/*  Args: 
+      n: the length of the permutation to generate
+    Returns:
+      List of length n representing a random permutation of 0..n-1
+    Description:
+      Generates a random permutation of the numbers 0..n-1. 
+*/
 long *randomPermutation(long n) {
     long *array = newA(long, n);
     parallel_for(long i = 0; i < n; i++) {
@@ -45,7 +74,7 @@ long *randomPermutation(long n) {
     }
 
     for(long i = 0; i < n; i++) {
-        int r = (rand() % (n - i)) + i;
+        int r = (rand() % (n - i)) + i; //rand int in [i, n) 
         long temp = array[i];
         array[i] = array[r];
         array[r] = temp;
@@ -53,6 +82,15 @@ long *randomPermutation(long n) {
     return array;
 }
 
+/*  Args:
+      C: a list of length n where C[i] = s indicates that 
+         vertex i is a member of the cluster that s represents 
+      n: the number of vertices
+    Returns:
+      The number of unique clusters with members in C
+    Description:
+      Computes the number of clusters that C has members in.   
+*/
 int num_clusters(long* C, long n) {
     int *found = newA(int, n);
     parallel_for(int i = 0; i < n; i++) {
@@ -61,7 +99,14 @@ int num_clusters(long* C, long n) {
     return sequence::plusReduce(found, n);
 }
 
-
+/*  Args:
+      C: a list of length n where C[i] = s indicates that 
+         vertex i is a member of the cluster that s represents
+      n: the number of vertices 
+    Returns:
+      List of length n where result[i] = 1 indicates that i is the
+      representative element for some cluster with members in C.
+*/
 long *get_cluster_names(long *C, long n) {
     long *names = newA(long, n);
     parallel_for(int i = 0; i < n; i++) {
@@ -70,7 +115,19 @@ long *get_cluster_names(long *C, long n) {
     return names;
 }
 
-
+/*  Args:
+      similarity: an n*n similarity matrix where similarity[n * i + j] represents the 
+        the similarity of vertices i and j
+      C: a list of length n where C[i] = c indicates that 
+         vertex i is a member of the cluster that c represents
+      s: the representative of the cluster that we'd like to compute the closest_cluster for
+      n: the number of vertices
+    Returns:
+      The representative element of the closest cluster to s.
+    Description: 
+      Computes the closest cluster to s by returning the cluster with the highest average 
+      similarity to s.
+*/
 long closest_cluster(int *similarity, long *C, long s, long n) {
     long* names = get_cluster_names(C, n);
     double max_sim = 0;
